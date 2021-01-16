@@ -19,6 +19,8 @@ class WaifuLabsController:
         self.base_url = 'https://api.waifulabs.com'
         self.generateUrl = self.base_url + '/generate'
 
+        self.message_segment = None
+
     async def generate_waifu(self, current_girl, size, step, local_json=None):
         payload = {
             'currentGirl': current_girl,
@@ -88,7 +90,7 @@ class WaifuLabsController:
     async def get_session(self, group_id, user_id) -> ChatSession:
         return await ChatSession.get_session(group_id, user_id)
 
-    async def first_receive(self, bot, ev, group_id: int, user_id: int, message: str) -> ChatResult:
+    async def first_receive(self, bot, ev, group_id: str, user_id: str, message: str) -> ChatResult:
         print(f'received args {message}')
 
         session: ChatSession = await self.get_session(group_id, user_id)
@@ -114,9 +116,13 @@ class WaifuLabsController:
             step += 1
 
         base64_img = await self.generate_harlem_image(step, girls)
-        return session.pause(f"[CQ:image,file=base64://{base64_img}]")
+        return session.pause(f"{self.generate_image_segment(base64_img)}")
+
+    def generate_image_segment(self, base64_img):
+        return self.message_segment.image('base64://' + base64_img)
 
     def register_nb2_a7_commands(self):
+        """Register commands for nonebot2 a7-"""
         from nonebot import on_command
         from nonebot.adapters.cqhttp import Bot, Event
 
@@ -132,24 +138,41 @@ class WaifuLabsController:
                 await waifu_labs.finish(reply.msg)
 
     def register_nb2_commands(self):
+        """Register commands for nonebot2 a8+"""
+        from nonebot.log import logger
         from nonebot import on_command
         from nonebot.adapters import Bot, Event
+        from nonebot.adapters.cqhttp import MessageSegment
+        logger.info('<waifu_for_laifu> registering nb2 a8+ commands')
+        self.message_segment = MessageSegment
 
-        waifu_labs_command = on_command("waifu", priority=5)
+        waifu_labs = on_command("waifu", priority=5)
 
-        @waifu_labs_command.handle()
+        @waifu_labs.handle()
         async def handle_waifu(bot: Bot, event: Event, state):
             message = str(event.get_message()).strip()
-            await self.first_receive(message)
+            reply: ChatResult = await self.first_receive(bot, event, event.get_session_id(), event.get_user_id(), message)
+            if reply.result_type == ChatResult.CHAT_RESULT_PAUSE:
+                await waifu_labs.reject(reply.msg)
+            else:
+                await waifu_labs.finish(reply.msg)
 
     def register_nb_commands(self):
+        import nonebot
+        from nonebot.log import logger
         from nonebot import on_command, CommandSession
+        from nonebot import MessageSegment
+        logger.info("<waifu_for_laifu> registering nb1 commands")
+        self.message_segment = MessageSegment
 
-        @on_command('waifu')
+        @on_command('waifu', only_to_me=False)
         async def handle_waifu(session: CommandSession):
-            message = session.state.get('message')
-            reply = await self.first_receive(message)
-            await session.send(reply)
+            message = session.current_arg
+            reply: ChatResult = await self.first_receive(session.bot, session.event, session.event.group_id, session.event.user_id, message)
+            if reply.result_type == ChatResult.CHAT_RESULT_PAUSE:
+                await session.pause(reply.msg)
+            else:
+                await session.finish(reply.msg)
 
     def register_hoshino_service(self):
         pass

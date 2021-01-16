@@ -25,17 +25,17 @@ run `python -m unittest`
 
 ### functions
 
-* generate a waifu with different poses
+* √ generate a waifu with different poses
 * randomly reply stored poses
 * generate waifu parameters
 * simple interactions using poses
 
 ### compatibility
 
-* nonebot2a7-
+* √ nonebot2a7-
 * nonebot2a8+
 * hoshino
-* nonebot1
+* √ nonebot1
 
 ## Thanks
 
