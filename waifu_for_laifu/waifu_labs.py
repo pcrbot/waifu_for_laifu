@@ -71,7 +71,7 @@ class WaifuLabsController:
             row = girl_index % 4
             col = girl_index // 4
 
-            head_bg = Image.new("RGBA", (300, 300))
+            head_bg = Image.new("RGBA", (300, 300), "#ffffff")
             girl_img = girl.get_image()
             head_bg.paste(girl_img, (60, 20))
             head_text = ImageDraw.Draw(head_bg)
