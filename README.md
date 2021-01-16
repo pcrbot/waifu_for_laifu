@@ -11,7 +11,11 @@ This project is still work in progress, not ready for production
 
 1. clone to somewhere
 2. install dependencies `pip install -r requirements.txt`
-3. make a soft link for inner module folder to nonebot2a7 modules directory
+3. make a soft link for inner module folder to nonebot/nb2/hoshino modules directory
+
+for Windows: `D:\chatbot\modules>mklink /J waifu_for_laifu D:\waifu_for_laifu\waifu_for_laifu`
+
+for Unix: `ln -s ./waifu_for_laifu/waifu_for_laifu waifu_for_laifu`
 
 ### Testing
 
@@ -28,8 +32,8 @@ run `python -m unittest`
 
 ### compatibility
 
-* nonebot2a7
-* nonebot2a8
+* nonebot2a7-
+* nonebot2a8+
 * hoshino
 * nonebot1
 
