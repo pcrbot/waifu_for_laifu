@@ -12,7 +12,6 @@ from .models.waifu import Waifu
 
 
 class WaifuLabsController:
-
     FONT_PATH = os.path.join(os.path.dirname(__file__), "Mamelon.otf")
 
     def __init__(self):
@@ -77,7 +76,7 @@ class WaifuLabsController:
             girl_img = girl.get_image()
             head_bg.paste(girl_img, (60, 20))
             head_text = ImageDraw.Draw(head_bg)
-            head_text.text((150, 260), str(girl_index), fill='#000000', font=font_sub, anchor="mm", align="center")
+            head_text.text((150, 260), str(girl_index + 1), fill='#000000', font=font_sub, anchor="mm", align="center")
 
             bg.paste(head_bg, (row * 300, col * 300 + 100))
 
@@ -101,12 +100,21 @@ class WaifuLabsController:
         else:
             try:
                 pick_index = int(message)
-                if 0 <= pick_index <= len(session.state['girls']):
-                    seeds = session.state['girls'][pick_index].seeds
+                if pick_index == 0:
+                    # user former seeds
+                    seeds = session.state.get('seeds')
+                elif 0 < pick_index <= len(session.state['girls']):
+                    seeds = session.state['girls'][pick_index - 1].seeds
+                if seeds is not None:
                     session.state['step'] += 1
             except:
                 pass
-        girls = await self.generate_waifu(seeds, 0, session.state['step'])
+        session.state['seeds'] = seeds
+        girls = None
+        try:
+            girls = await self.generate_waifu(seeds, 0, session.state['step'])
+        except:
+            pass
         if girls is None:
             return session.finish('something went wrong')
         session.state['girls'] = girls
@@ -151,14 +159,14 @@ class WaifuLabsController:
         @waifu_labs.handle()
         async def handle_waifu(bot: Bot, event: Event, state):
             message = str(event.get_message()).strip()
-            reply: ChatResult = await self.first_receive(bot, event, event.get_session_id(), event.get_user_id(), message)
+            reply: ChatResult = await self.first_receive(bot, event, event.get_session_id(), event.get_user_id(),
+                                                         message)
             if reply.result_type == ChatResult.CHAT_RESULT_PAUSE:
                 await waifu_labs.reject(reply.msg)
             else:
                 await waifu_labs.finish(reply.msg)
 
     def register_nb_commands(self):
-        import nonebot
         from nonebot.log import logger
         from nonebot import on_command, CommandSession
         from nonebot import MessageSegment
@@ -168,7 +176,8 @@ class WaifuLabsController:
         @on_command('waifu', only_to_me=False)
         async def handle_waifu(session: CommandSession):
             message = session.current_arg
-            reply: ChatResult = await self.first_receive(session.bot, session.event, session.event.group_id, session.event.user_id, message)
+            reply: ChatResult = await self.first_receive(session.bot, session.event, session.event.group_id,
+                                                         session.event.user_id, message)
             if reply.result_type == ChatResult.CHAT_RESULT_PAUSE:
                 await session.pause(reply.msg)
             else:
