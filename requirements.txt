@@ -1,0 +1,3 @@
+aiounittest
+pillow>=8.0.0
+aiohttp~=3.6.2
