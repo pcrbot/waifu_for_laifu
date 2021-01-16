@@ -10,9 +10,12 @@ This project is still work in progress, not ready for production
 ## Usage
 
 1. clone to somewhere
-2. pip install -r requirements.txt
+2. install dependencies `pip install -r requirements.txt`
 3. make a soft link for inner module folder to nonebot2a7 modules directory
 
+### Testing
+
+run `python -m unittest`
 
 ## TODO
 
